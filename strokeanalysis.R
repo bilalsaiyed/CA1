@@ -1,6 +1,9 @@
 # Importing & Installing the required packages & libraries
 # install.packages("naniar")
 # install.packages("dplyr")
+# install.packages("VIM")
+# install.packages("psych")
+# install.packages("lattice")
 library(naniar)
 library(dplyr)
 
@@ -24,8 +27,12 @@ incomplete_data
 # Display the missing data in rows
 nrow(incomplete_data)
 
+# Finding the missing or unknown data across different columns
 miss_scan_count(data = stroke_data , search = list("N/A", "Unknown"))
+# There are 1544 unknown smoking status values.
+# This is too much to be removed without skewing the data
 
+# Finding unique values across different variables
 cat("Gender:")
 unique(stroke_data$gender)
 cat("Married:")
@@ -37,29 +44,29 @@ unique(stroke_data$Residence_type)
 cat("Smoking:")
 unique(stroke_data$smoking_status)
 
-
-
-
-
 # Data Pre-processing:
 # 1. id and Date attributes 
 # As these attributes were used to identify the patients
 # records only, hence they can be dropped for further processing
 new_stroke_data <- stroke_data[, c(2,3,4,5,6,7,8,9,10,11,12)]
+str(new_stroke_data)
 
 # 2. bmi attribute:
 # Removing the N/A values from bmi attribute which account for 3.9% of all values
 new_stroke_data <- new_stroke_data[new_stroke_data$bmi != "N/A", ]
 str(new_stroke_data)
 # Removed 201 rows with N/A value from the data frame
+
 # Converting the bmi attribute from character to numeric
 new_stroke_data["bmi"] <- as.numeric(new_stroke_data$bmi)
+str(new_stroke_data)
 
 # 3. Renaming the Residence_type attribute
 new_stroke_data <- new_stroke_data %>% rename("residence_type" = "Residence_type")
 str(new_stroke_data)
 
 # 4. gender attribute:
+# As there is only 1 entry with "Other" value, hence
 # Removing patients who were categorized as ‘Other’ in the gender column
 new_stroke_data = filter(new_stroke_data, gender!='Other')
 str(new_stroke_data)
@@ -80,7 +87,6 @@ str(new_stroke_data)
 any(is.na(new_stroke_data))
 
 # visualize the missing data
-# install.packages("VIM")
 library(VIM)
 missing_values <- aggr(new_stroke_data, prop = FALSE, numbers = TRUE)
 
@@ -90,10 +96,10 @@ summary(missing_values)
 # Display the structure of DF
 str(new_stroke_data)
 
-# Installing the library 'psych'
-# install.packages("psych")
+# Making use of psych library
 library(psych)
 
+# Finding correlation between different variables
 pairs.panels(new_stroke_data, 
              smooth = FALSE, # If TRUE, draws less smooths
              scale = FALSE, # If TRUE, scales the correlation text font
@@ -146,7 +152,6 @@ plot(stroke, age, pch = 9, col = "LightBlue",
 # We can split the dichotomous variable into 
 # 2 different visualization & then examine the data
 # Importing the library 'lattice'
-#installed.packages("lattice")
 library("lattice")
 
 # Visualizing the variables
