@@ -44,11 +44,34 @@ unique(stroke_data$Residence_type)
 cat("Smoking:")
 unique(stroke_data$smoking_status)
 
+# converting the stroke data into numeric
+all_numeric <- stroke_data
+
+all_numeric <- all_numeric %>%
+        mutate(gender = case_when(gender == "Male" ~1,
+                                  gender == "Female" ~0,
+                                  gender == "Other" ~2),
+               ever_married = case_when(ever_married == "Yes" ~1,
+                                        ever_married == "No" ~0),
+               work_type = case_when(work_type == "children" ~0,
+                                     work_type == "Never_worked" ~1,
+                                     work_type == "Private" ~2,
+                                     work_type == "Govt_job" ~3,
+                                     work_type == "Self-employed" ~4),
+               Residence_type = case_when(Residence_type == "Urban" ~1,
+                                          Residence_type == "Rural" ~0),
+               smoking_status = case_when(smoking_status == "never smoked" ~0,
+                                          smoking_status == "formerly smoked" ~1,
+                                          smoking_status == "smokes" ~2,
+                                          smoking_status == "Unknown" ~3) 
+        )
+str(all_numeric)
+
 # Data Pre-processing:
 # 1. id and Date attributes 
 # As these attributes were used to identify the patients
 # records only, hence they can be dropped for further processing
-new_stroke_data <- stroke_data[, c(2,3,4,5,6,7,8,9,10,11,12)]
+new_stroke_data <- all_numeric[, c(2,3,4,5,6,7,8,9,10,11,12)]
 str(new_stroke_data)
 
 # 2. bmi attribute:
@@ -61,24 +84,17 @@ str(new_stroke_data)
 new_stroke_data["bmi"] <- as.numeric(new_stroke_data$bmi)
 str(new_stroke_data)
 
-# 3. Renaming the Residence_type attribute
-new_stroke_data <- new_stroke_data %>% rename("residence_type" = "Residence_type")
-str(new_stroke_data)
-
-# 4. gender attribute:
-# As there is only 1 entry with "Other" value, hence
+# 3. gender attribute:
+# As there is only 1 entry with "Other" value which is encoded as 2, hence
 # Removing patients who were categorized as ‘Other’ in the gender column
-new_stroke_data = filter(new_stroke_data, gender!='Other')
+new_stroke_data = filter(new_stroke_data, gender!= 2)
 str(new_stroke_data)
 
-# 5. Factoring the columns
-new_stroke_data$gender = as.factor(new_stroke_data$gender)
-new_stroke_data$ever_married = as.factor(new_stroke_data$ever_married)
-new_stroke_data$work_type = as.factor(new_stroke_data$work_type)
+# 4. Residence_type attribute:
+# Renaming the variable
+new_stroke_data <- new_stroke_data %>% rename("residence_type" = "Residence_type")
+# Factoring the variable
 new_stroke_data$residence_type = as.factor(new_stroke_data$residence_type)
-new_stroke_data$smoking_status = as.factor(new_stroke_data$smoking_status)
-new_stroke_data$hypertension = as.factor(new_stroke_data$hypertension)
-#new_stroke_data$heart_disease = as.factor(new_stroke_data$heart_disease)
 str(new_stroke_data)
 
 # Checking if any NA is present in the DF
@@ -86,7 +102,7 @@ str(new_stroke_data)
 # TRUE represent there are NA's in the DF
 any(is.na(new_stroke_data))
 
-# visualize the missing data
+# visualizing the missing data
 library(VIM)
 missing_values <- aggr(new_stroke_data, prop = FALSE, numbers = TRUE)
 
@@ -158,7 +174,7 @@ library("lattice")
 histogram(~age | stroke, 
           data = new_stroke_data, 
           main = "Distribution of Age with the occurence of stroke", 
-          xlab = "AGE", ylab = "Stroke %")
+          xlab = "Age", ylab = "Stroke %")
 
 # Visual analysis seems to indicate that the 
 # data is Normally Distributed
@@ -197,7 +213,7 @@ with(new_stroke_data,
 normality_test <- shapiro.test(new_stroke_data$age)
 normality_test$p.value
 
-# We observed that p-value is < than 0.05, thus
+# We observed that p-value is 1.25e-31 < than 0.05, thus
 # The age variable is not Normally Distributed
 
 # This test does not work on a dichotomous variable
@@ -212,14 +228,17 @@ with(new_stroke_data, tapply(age, stroke, shapiro.test))
 # with the independent categorical variable Stroke
 kruskal.test(age~stroke, data = new_stroke_data)
 
+# Calculating the pairwise comparisons between Age and Stroke
+pairwise.wilcox.test(new_stroke_data$age, new_stroke_data$stroke, 
+                     p.adjust.method = "BH")
+
+# The pairwise comparison shows that the levels are significantly different
+
 # cut-off = 0.05
 # p-value = 2.2e-16 which is almost equal to 0
 
-# As, p-value < 0.05 so thus the
+# As, p-value < 0.05 thus the
 # Null (H0) hypothesis is rejected
-# therefore this indicates that
-# the chance of patient getting HA between the 
-# age(29 to 77) is less
 
 # Answer for Question 1:
 # Elder people are more likely to get a stroke than younger people
@@ -230,12 +249,20 @@ kruskal.test(age~stroke, data = new_stroke_data)
 # H0 = Males and females are equally likely to get a stroke
 # H1 = Males have more chances to get a stroke than females
 
+# Quantile-Quantile plot (Q-Q-Plot) allows us to check
+# if the data is normally distributed or not
+qqnorm(gender)
+
+# Add the line to show if data is ND
+qqline(gender, col = "red")
+# The gender field is not normally distributed
+
 # Convert the gender variable to
 # a categorical dichotomous variable with appropriate labels
 # 0 = Female and 1 = Male
-#new_stroke_data$gender <- factor(new_stroke_data$gender, 
-#                             labels = c("Female", 
-#                                        "Male"))
+new_stroke_data$gender <- factor(new_stroke_data$gender, 
+                             labels = c("Female", 
+                                        "Male"))
 
 # Structure of the DF
 str(new_stroke_data)
@@ -246,8 +273,10 @@ table(new_stroke_data$gender)
 # Analyzing the chances of stroke with gender
 table(new_stroke_data$stroke, new_stroke_data$gender)
 
+attach(new_stroke_data)
+
 # Plot the graph to analyze the specified attributes
-plot(stroke, gender, pch = 9, col = "LightBlue", 
+plot(stroke, gender, pch = 9, col = "blue", 
      main = "Comaprison of Gender with Stroke", 
      xlab = "Stroke", ylab = "Gender")
 
@@ -255,27 +284,11 @@ plot(stroke, gender, pch = 9, col = "LightBlue",
 histogram(~gender | stroke, 
           data = new_stroke_data, 
           main = "Distribution of the gender with Stroke", 
-          xlab = "Gender", ylab = "Count of patients getting a stroke") 
-
-
-str(new_stroke_data)
-
-# Quantile-Quantile plot (Q-Q-Plot) allows us to check
-# if the data is normally distributed or not
-qqnorm(gender)
-
-# Add the line to show if data is ND
-qqline(gender, col = "red")
-# The gender field is not normally distributed
-
-# Visual analysis seems to indicate that the 
-# data is Normally Distributed
-# summarizing it below
-tapply(gender, stroke, median)
+          xlab = "Gender", ylab = "Count of patients getting a stroke")
 
 # Applying the chi-square statistic with the function
 # it can be applied as both are the categorical variables
-chisq <- chisq.test(new_stroke_data$gender, new_stroke_data$stroke)
+chisq <- chisq.test(gender, stroke)
 chisq
 
 # Observed count values for the hypothesis
@@ -300,13 +313,13 @@ chisq$p.value
 
 # Answer to Question 2:
 # Thus the chance of a male patient getting a
-# stroke is same as that of a female.
+# stroke is same as that of a female patient.
 
 ################# Question 3:
 # Increased Average glucose level leads to heart diseases which may
 # eventually lead to a stroke
 #################
-# normal range of Glucose level <= 140
+# Normal range of Glucose level <= 140
 # Diabetic range of Glucose level > 200
 # H0 = Increased average glucose level leads to heart diseases
 # H1 = Increased average glucose level has no effect on heart disease
@@ -325,9 +338,9 @@ table(new_stroke_data$heart_disease)
 table(new_stroke_data$avg_glucose_level, new_stroke_data$heart_disease)
 
 # Plot the graph to analyze the specified attributes
-plot(heart_disease, avg_glucose_level, pch = 9, col = "LightBlue", 
-     main = "Comparison of the glucose level v/s Heart Disease", 
-     xlab = "Glucose Level", ylab = "Heart Disease Status")
+plot(heart_disease, avg_glucose_level, pch = 9, col = "Red", 
+     main = "Comparison of the Average glucose level v/s Heart Disease", 
+     xlab = "Heart Disease Status", ylab = "Average glucose level(mmol/L)")
 
 # Analyzing the distribution of the variables
 histogram(~avg_glucose_level | heart_disease, 
@@ -364,8 +377,8 @@ normality_test$p.value
 with(new_stroke_data, tapply(avg_glucose_level, heart_disease, shapiro.test))
 
 # Results show
-# Patient does not have heart disease with low average glucose level = p-value < 0.05 - it is not ND
-# Patient has heart disease with high average glucose level = p-value < 0.05 - it is not ND
+# Patient does not have heart disease with low average glucose level = p-value < 0.05 - It is not ND
+# Patient has heart disease with high average glucose level = p-value < 0.05 - It is not ND
 
 # After examining for an dependent var(Average Glucose level)
 # with an independent categorical var(Heart disease)
@@ -390,6 +403,12 @@ wilcox.test(avg_glucose_level~heart_disease)
 # H0 = Smoking status has positive correlation to Work type
 # H1 = Smoking status and Work Type are not correlated
 
+# work_type: "children" ~0,"Never_worked" ~1,"Private" ~2,
+# "Govt_job" ~3,"Self-employed" ~4
+
+# smoking_status: "never smoked" ~0,"formerly smoked" ~1,
+# "smokes" ~2,"Unknown" ~3
+
 # Structure of the DF
 str(new_stroke_data)
 
@@ -400,7 +419,7 @@ table(new_stroke_data$work_type)
 table(new_stroke_data$smoking_status, new_stroke_data$work_type)
 
 # Plot the graph to analyze the specified attributes
-plot(smoking_status, work_type, pch = 9, col = "LightBlue", 
+plot(smoking_status, work_type, pch = 15, col = "red", 
      main = "Comaprison of work_type with smoking_status", 
      xlab = "smoking_status", ylab = "work_type")
 
@@ -410,8 +429,6 @@ histogram(~work_type | smoking_status,
           main = "Distribution of Work Type with Smoking status", 
           xlab = "Work Type", ylab = "Count of patients")
 
-str(new_stroke_data)
-
 # Quantile-Quantile plot (Q-Q-Plot) allows us to check
 # if the data is normally distributed or not
 qqnorm(work_type)
@@ -420,30 +437,25 @@ qqnorm(work_type)
 qqline(work_type, col = "red")
 # The work_type field is not normally distributed
 
-# Visual analysis seems to indicate that the 
-# data is Normally Distributed
-# summarizing it below
-tapply(work_type, smoking_status, median)
-
 # Applying the chi-square statistic with the function
 # it can be applied as both are categorical variables
-chisq <- chisq.test(new_stroke_data$work_type, new_stroke_data$smoking_status)
-chisq
+chisq1 <- chisq.test(work_type, smoking_status)
+chisq1
 
 # Observed count values for the hypothesis
-chisq$observed
+chisq1$observed
 
 # Expected count of the values for the hypothesis
-round(chisq$expected)
+round(chisq1$expected)
 
 # Visualize the Pearsons residuals
-round(chisq$residuals)
+round(chisq1$residuals)
 
 # Print the p.value
-chisq$p.value
+chisq1$p.value
 
 # cut-off = 0.05
-# p-value = 2.2e-16 which is almost equal to 0
+# p-value = 1.86e-283 which is almost equal to 0
 # As, p-value < 0.05 then we, Reject the H0
 
 # Answer to Question 4:
@@ -455,6 +467,10 @@ chisq$p.value
 # H0 = Marital status has positive correlation with hypertension
 # H1 = Marital status and hypertension are not correlated
 
+# ever_married: "Yes" ~1,"No" ~0
+
+# hypertension: "DOesn't have" ~0,"Have" ~1
+
 # Structure of the DF
 str(new_stroke_data)
 
@@ -465,7 +481,7 @@ table(new_stroke_data$ever_married)
 table(new_stroke_data$hypertension, new_stroke_data$ever_married)
 
 # Plot the graph to analyze the specified attributes
-plot(hypertension, ever_married, pch = 9, col = "LightBlue", 
+plot(hypertension, ever_married, pch = 15, col = "blue", 
      main = "Comaprison of Married people with hypertension", 
      xlab = "smoking_status", ylab = "work_type")
 
@@ -475,8 +491,6 @@ histogram(~ever_married | hypertension,
           main = "Distribution of Ever Married with Hypertension", 
           xlab = "Ever Married", ylab = "Count of people")
 
-str(new_stroke_data)
-
 # Quantile-Quantile plot (Q-Q-Plot) allows us to check
 # if the data is normally distributed or not
 qqnorm(ever_married)
@@ -485,31 +499,26 @@ qqnorm(ever_married)
 qqline(ever_married, col = "red")
 # The ever_married field is not normally distributed
 
-# Visual analysis seems to indicate that the 
-# data is Normally Distributed
-# summarizing it below
-tapply(ever_married, hypertension, median)
-
 # Applying the chi-square statistic with the function
 # it can be applied as both are categorical variables
-chisq <- chisq.test(new_stroke_data$ever_married, new_stroke_data$hypertension)
-chisq
+chisq2 <- chisq.test(ever_married, hypertension)
+chisq2
 
 # Observed count values for the hypothesis
-chisq$observed
+chisq2$observed
 
 # Expected count of the values for the hypothesis
-round(chisq$expected)
+round(chisq2$expected)
 
 # Visualize the Pearsons residuals
-round(chisq$residuals)
+round(chisq2$residuals)
 
 # Print the p.value
-chisq$p.value
+chisq2$p.value
 
 # cut-off = 0.05
 # p-value = 1.02e-29 which is almost equal to 0
 # As, p-value < 0.05 then we, Reject the H0
 
 # Answer to Question 5:
-# Thus the he marital status has no correlation to hypertension
+# Thus the marital status has no correlation with hypertension
