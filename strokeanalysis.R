@@ -383,3 +383,68 @@ wilcox.test(avg_glucose_level~heart_disease)
 
 # Answer for Question 3:
 # Thus Increased average glucose level has no effect on heart disease
+
+################# Question 4:
+# Does Smoking status depends on Work type
+#################
+# H0 = Smoking status has positive correlation to Work type
+# H1 = Smoking status and Work Type are not correlated
+
+# Structure of the DF
+str(new_stroke_data)
+
+# Analyze the work_type of the patients
+table(new_stroke_data$work_type)
+
+# Analyzing smoking_status with work_type
+table(new_stroke_data$smoking_status, new_stroke_data$work_type)
+
+# Plot the graph to analyze the specified attributes
+plot(smoking_status, work_type, pch = 9, col = "LightBlue", 
+     main = "Comaprison of work_type with smoking_status", 
+     xlab = "smoking_status", ylab = "work_type")
+
+# Visualizing the variables
+histogram(~work_type | smoking_status, 
+          data = new_stroke_data, 
+          main = "Distribution of Work Type with Smoking status", 
+          xlab = "Work Type", ylab = "Count of patients")
+
+str(new_stroke_data)
+
+# Quantile-Quantile plot (Q-Q-Plot) allows us to check
+# if the data is normally distributed or not
+qqnorm(work_type)
+
+# Add the line to show if data is ND
+qqline(work_type, col = "red")
+# The work_type field is not normally distributed
+
+# Visual analysis seems to indicate that the 
+# data is Normally Distributed
+# summarizing it below
+tapply(work_type, smoking_status, median)
+
+# Applying the chi-square statistic with the function
+# it can be applied as both are categorical variables
+chisq <- chisq.test(new_stroke_data$work_type, new_stroke_data$smoking_status)
+chisq
+
+# Observed count values for the hypothesis
+chisq$observed
+
+# Expected count of the values for the hypothesis
+round(chisq$expected)
+
+# Visualize the Pearsons residuals
+round(chisq$residuals)
+
+# Print the p.value
+chisq$p.value
+
+# cut-off = 0.05
+# p-value = 2.2e-16 which is almost equal to 0
+# As, p-value < 0.05 then we, Reject the H0
+
+# Answer to Question 4:
+# Thus the he smoking status has no correlation to work type
