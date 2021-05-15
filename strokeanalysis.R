@@ -1,10 +1,7 @@
-# Analyzing and dealing with the data of Stroke
-# to visualize the ratio and chances of people getting
-# Stroke with the different variables and get them
-# to know the functioning.
-
 # Importing & Installing the required packages & libraries
+# install.packages("naniar")
 # install.packages("dplyr")
+library(naniar)
 library(dplyr)
 
 # Importing the dataset into a DF
@@ -27,6 +24,8 @@ incomplete_data
 # Display the missing data in rows
 nrow(incomplete_data)
 
+miss_scan_count(data = stroke_data , search = list("N/A", "Unknown"))
+
 cat("Gender:")
 unique(stroke_data$gender)
 cat("Married:")
@@ -38,9 +37,9 @@ unique(stroke_data$Residence_type)
 cat("Smoking:")
 unique(stroke_data$smoking_status)
 
-# install.packages("naniar")
-library(naniar)
-miss_scan_count(data = stroke_data , search = list("N/A", "Unknown"))
+
+
+
 
 # Data Pre-processing:
 # 1. id and Date attributes 
