@@ -522,3 +522,6 @@ chisq2$p.value
 
 # Answer to Question 5:
 # Thus the marital status has no correlation with hypertension
+
+# Saving the modified file of the data worked on
+write.csv(new_stroke_data, file = "new_stroke_data.csv")
