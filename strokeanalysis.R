@@ -193,35 +193,32 @@ with(new_stroke_data,
 normality_test <- shapiro.test(new_stroke_data$age)
 normality_test$p.value
 
-# We observed that p-value is < than 0.05, 
-# The AGE variable is not Normally Distributed
+# We observed that p-value is < than 0.05, thus
+# The age variable is not Normally Distributed
 
 # This test does not work on a dichotomous variable
 with(new_stroke_data, tapply(age, stroke, shapiro.test))
 
 # Results show
-# Less chance of getting HA = p-value = 0.002 - It is not ND
-# More chance of getting HA = p-value = 0.121 - It is ND
+# Patients did not have a stroke before = p-value = 2.2e-16 - It is not ND
+# Patients had a stroke before = p-value = 1.9e-10 - It is not ND
 
-# After consulting the chart, I am aiming
-# a dependent var(Age)
-# with a independent categorical var(Stroke)
-# Format wilcox.test(dependent var ~ independent var)
-# wilcox.test(Age~Stroke)
+# After examining that the dependent var(Age) is not normally distributed,
+# we choose the Non-parametric Kruskal- Wallis test
+# with the independent categorical variable Stroke
 kruskal.test(age~stroke, data = new_stroke_data)
-# cut-off = 0.05
-# p-value = 3.439e-05 equals to (0.0003)
-# p-value < 0.05 then we, Reject the H0
 
-# p-value < 0.05 so this indicates that the
+# cut-off = 0.05
+# p-value = 2.2e-16 which is almost equal to 0
+
+# As, p-value < 0.05 so thus the
 # Null (H0) hypothesis is rejected
 # therefore this indicates that
 # the chance of patient getting HA between the 
 # age(29 to 77) is less
 
 # Answer for Question 1:
-# Thus the chance of patient getting a HA 
-# between the age(29 to 77) is more.
+# Elder people are more likely to get a stroke than younger people
 
 ############## Question 2:
 # Are males more likely to get a stroke than females
@@ -265,7 +262,7 @@ qqnorm(gender)
 
 # Add the line to show if data is ND
 qqline(gender, col = "red")
-# The gender(sex) field is not normally distributed
+# The gender field is not normally distributed
 
 # Visual analysis seems to indicate that the 
 # data is Normally Distributed
@@ -283,24 +280,23 @@ chisq$observed
 # Expected count of the values for the hypothesis
 round(chisq$expected)
 
-# Visualize the pearsons residuals
+# Visualize the Pearsons residuals
 round(chisq$residuals)
 
 # Print the p.value
 chisq$p.value
 
 # cut-off = 0.05
-# p-value = 1.876e-06 equals to (0.0018)
-# p-value < 0.05 then we, Reject the H0
+# p-value = 0.68
+# p-value > 0.05 thus we, Accept the H0
 
-# p-value < 0.05 so this indicates that the
-# Null (H0) hypothesis is rejected
-# therefore this indicates that
-# the chance of males getting HA is less as compared to female
+# p-value > 0.05 indicates that the
+# Null (H0) hypothesis is accepted
+# This indicates that males and females are equally likely to get a stroke
 
 # Answer to Question 2:
-# Thus the chance of male patient getting HA 
-# is more then with female.
+# Thus the chance of a male patient getting a
+# stroke is same as that of a female.
 
 ################# Question 3:
 # Increased Average glucose level leads to heart diseases which may
@@ -448,3 +444,68 @@ chisq$p.value
 
 # Answer to Question 4:
 # Thus the he smoking status has no correlation to work type
+
+################# Question 5:
+# Is marriage responsible for hypertension
+#################
+# H0 = Marital status has positive correlation with hypertension
+# H1 = Marital status and hypertension are not correlated
+
+# Structure of the DF
+str(new_stroke_data)
+
+# Analyze the married status of the patients
+table(new_stroke_data$ever_married)
+
+# Analyzing hypertension with ever_married
+table(new_stroke_data$hypertension, new_stroke_data$ever_married)
+
+# Plot the graph to analyze the specified attributes
+plot(hypertension, ever_married, pch = 9, col = "LightBlue", 
+     main = "Comaprison of Married people with hypertension", 
+     xlab = "smoking_status", ylab = "work_type")
+
+# Visualizing the variables
+histogram(~ever_married | hypertension, 
+          data = new_stroke_data, 
+          main = "Distribution of Ever Married with Hypertension", 
+          xlab = "Ever Married", ylab = "Count of people")
+
+str(new_stroke_data)
+
+# Quantile-Quantile plot (Q-Q-Plot) allows us to check
+# if the data is normally distributed or not
+qqnorm(ever_married)
+
+# Add the line to show if data is ND
+qqline(ever_married, col = "red")
+# The ever_married field is not normally distributed
+
+# Visual analysis seems to indicate that the 
+# data is Normally Distributed
+# summarizing it below
+tapply(ever_married, hypertension, median)
+
+# Applying the chi-square statistic with the function
+# it can be applied as both are categorical variables
+chisq <- chisq.test(new_stroke_data$ever_married, new_stroke_data$hypertension)
+chisq
+
+# Observed count values for the hypothesis
+chisq$observed
+
+# Expected count of the values for the hypothesis
+round(chisq$expected)
+
+# Visualize the Pearsons residuals
+round(chisq$residuals)
+
+# Print the p.value
+chisq$p.value
+
+# cut-off = 0.05
+# p-value = 1.02e-29 which is almost equal to 0
+# As, p-value < 0.05 then we, Reject the H0
+
+# Answer to Question 5:
+# Thus the he marital status has no correlation to hypertension
