@@ -72,7 +72,7 @@ new_stroke_data$work_type = as.factor(new_stroke_data$work_type)
 new_stroke_data$residence_type = as.factor(new_stroke_data$residence_type)
 new_stroke_data$smoking_status = as.factor(new_stroke_data$smoking_status)
 new_stroke_data$hypertension = as.factor(new_stroke_data$hypertension)
-new_stroke_data$heart_disease = as.factor(new_stroke_data$heart_disease)
+#new_stroke_data$heart_disease = as.factor(new_stroke_data$heart_disease)
 str(new_stroke_data)
 
 # Checking if any NA is present in the DF
@@ -301,3 +301,85 @@ chisq$p.value
 # Answer to Question 2:
 # Thus the chance of male patient getting HA 
 # is more then with female.
+
+################# Question 3:
+# Increased Average glucose level leads to heart diseases which may
+# eventually lead to a stroke
+#################
+# normal range of Glucose level <= 140
+# Diabetic range of Glucose level > 200
+# H0 = Increased average glucose level leads to heart diseases
+# H1 = Increased average glucose level has no effect on heart disease
+
+# heart_disease variable is a categorical dichotomous variable with following labels:
+# 0 = Patient doesn't have any heart disease; 1 = Patient has heart disease
+new_stroke_data$heart_disease <- factor(new_stroke_data$heart_disease, 
+                                 labels = c("Patient does not have heart disease", 
+                                            "Patient has heart disease"))
+
+# Analyze the data with specified attributes
+table(new_stroke_data$avg_glucose_level)
+table(new_stroke_data$heart_disease)
+
+# Comparing the analysis of the specified attributes
+table(new_stroke_data$avg_glucose_level, new_stroke_data$heart_disease)
+
+# Plot the graph to analyze the specified attributes
+plot(heart_disease, avg_glucose_level, pch = 9, col = "LightBlue", 
+     main = "Comparison of the glucose level v/s Heart Disease", 
+     xlab = "Glucose Level", ylab = "Heart Disease Status")
+
+# Analyzing the distribution of the variables
+histogram(~avg_glucose_level | heart_disease, 
+          data = new_stroke_data, 
+          main = "Distribution of Average Glucose Level v/s Heart Disease", 
+          xlab = "Average Glucose Level(mmol/L)", ylab = "Number of patients having Heart Diseases")
+
+# Quantile-quantile plot (Q-Q-Plot) allows us to check
+# if the data is Normally Distributed or not
+qqnorm(avg_glucose_level)
+
+# Adding the line that represents the Normal Distribution
+qqline(avg_glucose_level, col = "red")
+# Assume it is Normally Distributed
+
+# Comparing the two variables
+with(new_stroke_data, 
+     qqplot(avg_glucose_level[heart_disease == "Patient has heart disease"], 
+            avg_glucose_level[heart_disease == "Patient does not have heart disease"], 
+            main = "Comparing 2 samples of Stroke Data", 
+            xlab = "High Average Glucose Level heart disease = More chance of Heart Disease", 
+            ylab = "Low Average Glucose Level heart disease = Less chance of Heart Disease"))
+
+# Formal test of normality
+# Shapiro-Wilks Test
+# p-value tells us the chances that the sample comes from a ND
+# If p.value > 0.05 then it is normally distributed
+normality_test <- shapiro.test(new_stroke_data$avg_glucose_level)
+normality_test$p.value
+# p.value = 1.147224e-60 < 0.05
+# Hence, it is not Normally Distributed
+
+# This test does not work on a dichotomous variable
+with(new_stroke_data, tapply(avg_glucose_level, heart_disease, shapiro.test))
+
+# Results show
+# Patient does not have heart disease with low average glucose level = p-value < 0.05 - it is not ND
+# Patient has heart disease with high average glucose level = p-value < 0.05 - it is not ND
+
+# After examining for an dependent var(Average Glucose level)
+# with an independent categorical var(Heart disease)
+# Format for the test is: wilcox.test(dependent var ~ independent var)
+wilcox.test(avg_glucose_level~heart_disease)
+# p-value = 0.000006
+
+# cut-off = 0.05
+# p-value < 0.05 thus we, Reject the H0
+
+# p-value < 0.05 so this indicates that the
+# Null (H0) hypothesis is rejected
+# therefore this indicates that
+# the rise in average glucose level has no effect on heart disease
+
+# Answer for Question 3:
+# Thus Increased average glucose level has no effect on heart disease
