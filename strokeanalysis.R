@@ -161,9 +161,9 @@ table(new_stroke_data$age, new_stroke_data$stroke)
 attach(new_stroke_data)
 
 # Plot the graph to analyze the specified attributes
-plot(stroke, age, pch = 9, col = "LightBlue", 
+plot(stroke, age, pch = 9, col = "yellow", 
      main = "Comaprison of Stroke with Age", 
-     xlab = "Stroke", ylab = "Age (Years)")
+     xlab = "Stroke", ylab = "Age (in Years)")
 
 # We can split the dichotomous variable into 
 # 2 different visualization & then examine the data
@@ -173,8 +173,8 @@ library("lattice")
 # Visualizing the variables
 histogram(~age | stroke, 
           data = new_stroke_data, 
-          main = "Distribution of Age with the occurence of stroke", 
-          xlab = "Age", ylab = "Stroke %")
+          main = "Distribution of Age with the occurrence of stroke", 
+          xlab = "Age (in Years)", ylab = "Stroke %")
 
 # Visual analysis seems to indicate that the 
 # data is Normally Distributed
@@ -202,9 +202,9 @@ with(new_stroke_data,
 with(new_stroke_data, 
      qqplot(age[stroke == "Patients did not have a stroke before"], 
             age[stroke == "Patients had a stroke before"], 
-            main = "Comparing 2 samples of Stroke Data", 
-            xlab = "Stroke age = Yes", 
-            ylab = "Stroke age = No"))
+            main = "Comparing 2 variables of Stroke Data", 
+            xlab = "Age (Stroke = Yes)", 
+            ylab = "Age (Stroke = No)"))
 
 # Formal test of normality
 # Shapiro-Wilks Test
@@ -235,7 +235,7 @@ pairwise.wilcox.test(new_stroke_data$age, new_stroke_data$stroke,
 # The pairwise comparison shows that the levels are significantly different
 
 # cut-off = 0.05
-# p-value = 2.2e-16 which is almost equal to 0
+# p-value = 0.00000000000000022 which is almost equal to 0
 
 # As, p-value < 0.05 thus the
 # Null (H0) hypothesis is rejected
@@ -276,15 +276,15 @@ table(new_stroke_data$stroke, new_stroke_data$gender)
 attach(new_stroke_data)
 
 # Plot the graph to analyze the specified attributes
-plot(stroke, gender, pch = 9, col = "blue", 
+plot(stroke, gender, pch = 9, col = "lightblue", 
      main = "Comaprison of Gender with Stroke", 
-     xlab = "Stroke", ylab = "Gender")
+     xlab = "Stroke", ylab = "Gender (Ratio)")
 
 # Visualizing the variables
 histogram(~gender | stroke, 
           data = new_stroke_data, 
-          main = "Distribution of the gender with Stroke", 
-          xlab = "Gender", ylab = "Count of patients getting a stroke")
+          main = "Distribution of gender with occurrence of Stroke", 
+          xlab = "Gender", ylab = "Count of patients")
 
 # Applying the chi-square statistic with the function
 # it can be applied as both are the categorical variables
@@ -338,16 +338,16 @@ table(new_stroke_data$heart_disease)
 table(new_stroke_data$avg_glucose_level, new_stroke_data$heart_disease)
 
 # Plot the graph to analyze the specified attributes
-plot(heart_disease, avg_glucose_level, pch = 9, col = "Red", 
+boxplot(heart_disease, avg_glucose_level, pch = 9, col = "Red", 
      main = "Comparison of the Average glucose level v/s Heart Disease", 
      xlab = "Heart Disease Status", ylab = "Average glucose level(mmol/L)")
 
 # Analyzing the distribution of the variables
 histogram(~avg_glucose_level | heart_disease, 
           data = new_stroke_data, 
-          main = "Distribution of Average Glucose Level v/s Heart Disease", 
+          main = "Distribution of Average Glucose Level with Heart Disease", 
           xlab = "Average Glucose Level(mmol/L)", 
-          ylab = "Number of patients having Heart Diseases")
+          ylab = "Number of patients")
 
 # Quantile-quantile plot (Q-Q-Plot) allows us to check
 # if the data is Normally Distributed or not
@@ -361,9 +361,9 @@ qqline(avg_glucose_level, col = "red")
 with(new_stroke_data, 
      qqplot(avg_glucose_level[heart_disease == "Patient has heart disease"], 
             avg_glucose_level[heart_disease == "Patient does not have heart disease"], 
-            main = "Comparing 2 samples of Stroke Data", 
-            xlab = "High Average Glucose Level heart disease = More chance of Heart Disease", 
-            ylab = "Low Average Glucose Level heart disease = Less chance of Heart Disease"))
+            main = "Comparing 2 variables of Stroke Data", 
+            xlab = "High Average Glucose Level (heart disease = Presence of Heart Disease)", 
+            ylab = "Low Average Glucose Level (heart disease = Absence of Heart Disease)"))
 
 # Formal test of normality
 # Shapiro-Wilks Test
@@ -381,18 +381,15 @@ with(new_stroke_data, tapply(avg_glucose_level, heart_disease, shapiro.test))
 # Patient does not have heart disease with low average glucose level = p-value < 0.05 - It is not ND
 # Patient has heart disease with high average glucose level = p-value < 0.05 - It is not ND
 
-# After examining for an dependent var(Average Glucose level)
-# with an independent categorical var(Heart disease)
-# Format for the test is: wilcox.test(dependent var ~ independent var)
-wilcox.test(avg_glucose_level~heart_disease)
+# After examining that the dependent var(Average Glucose level) is not normally distributed,
+# we choose the Non-parametric Kruskal- Wallis test
+# with the independent categorical variable Heart disease
+kruskal.test(avg_glucose_level~heart_disease, data = new_stroke_data)
+
 # p-value = 0.000006
-
 # cut-off = 0.05
-# p-value < 0.05 thus we, Reject the H0
-
-# p-value < 0.05 so this indicates that the
-# Null (H0) hypothesis is rejected
-# Thus, increased average glucose level has no effect on heart disease
+# p-value < 0.05 thus the Null (H0) hypothesis is rejected
+# So, increased average glucose level has no effect on heart disease
 
 # Answer for Question 3:
 # Increased average glucose level does not indicate presence of heart disease
@@ -407,6 +404,12 @@ wilcox.test(avg_glucose_level~heart_disease)
 # "Govt_job" ~3,"Self-employed" ~4
 
 # hypertension: "Doesn't have" ~0,"Have" ~1
+# Convert the hypertension variable to
+# a categorical dichotomous variable with appropriate labels
+# 0 = Patients not having hypertension and  1 = Patients having hypertension
+new_stroke_data$hypertension <- factor(new_stroke_data$hypertension, 
+                                       labels = c("Patients not having hypertension", 
+                                                  "Patients having hypertension"))
 
 # Structure of the DF
 str(new_stroke_data)
@@ -418,9 +421,9 @@ table(new_stroke_data$work_type)
 table(new_stroke_data$hypertension, new_stroke_data$work_type)
 
 # Plot the graph to analyze the specified attributes
-plot(hypertension, work_type, pch = 15, col = "red", 
-     main = "Comaprison of work_type with hypertension", 
-     xlab = "Hypertension", ylab = "work_type")
+plot(hypertension, work_type, pch = 15, col = "blue", 
+     main = "Comaprison of Work type with Hypertension", 
+     xlab = "Hypertension", ylab = "Work Type")
 
 # Visualizing the variables
 histogram(~work_type | hypertension, 
@@ -432,7 +435,7 @@ histogram(~work_type | hypertension,
 # if the data is normally distributed or not
 qqnorm(work_type)
 
-# Add the line to show if data is ND
+# Add the line to show if data is Normally Distributed
 qqline(work_type, col = "red")
 # The work_type field is not normally distributed
 
@@ -454,7 +457,7 @@ round(chisq1$residuals)
 chisq1$p.value
 
 # cut-off = 0.05
-# p-value = 1.01e-25 which is almost equal to 0
+# p-value = 0.000023
 # As, p-value < 0.05 thus, we Reject the H0
 
 # Answer to Question 4:
@@ -466,9 +469,15 @@ chisq1$p.value
 # H0 = Marital status has positive correlation with hypertension
 # H1 = Marital status and hypertension are not correlated
 
-# ever_married: "Yes" ~1,"No" ~0
+# Convert the ever_married variable to
+# a categorical dichotomous variable with appropriate labels
+# 0 = Unmarried and  1 = Married
+new_stroke_data$ever_married <- factor(new_stroke_data$ever_married, 
+                                 labels = c("Unmarried", 
+                                            "Married"))
+# ever_married: "Yes" ~1: Married,"No" ~0: Unmarried
 
-# hypertension: "DOesn't have" ~0,"Have" ~1
+# hypertension: "Doesn't have" ~0,"Have" ~1
 
 # Structure of the DF
 str(new_stroke_data)
@@ -481,14 +490,14 @@ table(new_stroke_data$hypertension, new_stroke_data$ever_married)
 
 # Plot the graph to analyze the specified attributes
 plot(hypertension, ever_married, pch = 15, col = "blue", 
-     main = "Comaprison of Married people with hypertension", 
-     xlab = "smoking_status", ylab = "work_type")
+     main = "Comaprison of Marital status with hypertension", 
+     xlab = "Hypertension", ylab = "Marital status")
 
 # Visualizing the variables
 histogram(~ever_married | hypertension, 
           data = new_stroke_data, 
-          main = "Distribution of Ever Married with Hypertension", 
-          xlab = "Ever Married", ylab = "Count of people")
+          main = "Distribution of Marital status with Hypertension", 
+          xlab = "Marital status", ylab = "Count of people")
 
 # Quantile-Quantile plot (Q-Q-Plot) allows us to check
 # if the data is normally distributed or not
@@ -520,34 +529,40 @@ chisq2$p.value
 # As, p-value < 0.05 then we, Reject the H0
 
 # Answer to Question 5:
-# Thus the marital status has no correlation with hypertension
+# Thus, the marital status has no correlation with hypertension
 
 ########### Question 6:
-# Does age have an affect on BMI of a patient
+# Does age influence the BMI of a patient
 ###########
 
 #H0: Age is positively correlated with BMI of a patient
 #H1: Age has no correlation to BMI of a patient
 
+# Converting the age attribute from numeric to integer
+new_stroke_data["age"] <- as.integer(new_stroke_data$age)
+# Converting the bmi attribute from numeric to integer
+new_stroke_data["bmi"] <- as.integer(new_stroke_data$bmi)
+str(new_stroke_data)
+
 # Plot the graph to analyze the specified attributes
-plot(age, bmi, pch = 19, col ="blue", 
+plot(age, bmi, pch = 19, col ="orange", 
      main = "Comaprison of Age with BMI", 
      xlab = "Age (in years)", ylab = "BMI(kg/m2)")
 
 
 # Visualizing the variables separately using hist function
 # for Age
-hist(age, col = "red", main = "Distributation of Age", 
+hist(age, col = "green", main = "Distributation of Age", 
      xlab = "Age (in years)")
 # for BMI
-hist(bmi, col = "red", main = "Distribution of BMI", 
-     xlab = "BMI(kg/m2)")
+hist(bmi, col = "green", main = "Distribution of BMI", 
+     xlab = "BMI (kg/m2)")
 
 # Visual analysis of the data
 histogram(~age | bmi,
           data = new_stroke_data,
-          main = "Distributation of Agee v/s BMI",
-          xlab = "Age (in years)" ,ylab = "BMI(kg/m2)")
+          main = "Distributation of Age v/s BMI",
+          xlab = "Age (in years)" ,ylab = "BMI (kg/m2)")
 
 # Quantile-quantile plot (Q-Q-Plot) allows us to check
 # if the data is Normally Distributed or not
@@ -599,12 +614,12 @@ shapiro.test(new_stroke_data$bmi)
 # Independent var = Age
 cor.test(age, bmi, method = "spearman")
 # cut-off = 0.05
-# As, p-value < 0.05
+# As, p-value is 0.00000000000000022 < 0.05
 # Hence, we will Reject (H0)
 # Thus Age and BMI of a patient are not correlated
 
 # Answer to question 6:
-# Thus we can state that Age has no correlation to BMI of a patient
+# Thus, we can state that Age has no correlation to BMI of a patient
 
 # Saving the modified file of the data worked on
 write.csv(new_stroke_data, file = "new_stroke_data.csv")
