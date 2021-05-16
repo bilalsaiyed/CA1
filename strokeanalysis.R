@@ -20,6 +20,7 @@ ncol(stroke_data)
 # Displaying the summary
 summary(stroke_data)
 
+# Data Preparation:
 # To check if any NA data present
 incomplete_data <- stroke_data[!complete.cases(stroke_data),]
 incomplete_data
@@ -67,7 +68,6 @@ all_numeric <- all_numeric %>%
         )
 str(all_numeric)
 
-# Data Pre-processing:
 # 1. id and Date attributes 
 # As these attributes were used to identify the patients
 # records only, hence they can be dropped for further processing
@@ -75,7 +75,7 @@ new_stroke_data <- all_numeric[, c(2,3,4,5,6,7,8,9,10,11,12)]
 str(new_stroke_data)
 
 # 2. bmi attribute:
-# Removing the N/A values from bmi attribute which account for 3.9% of all values
+# Removing the N/A from bmi attribute which account for 3.9% of all values
 new_stroke_data <- new_stroke_data[new_stroke_data$bmi != "N/A", ]
 str(new_stroke_data)
 # Removed 201 rows with N/A value from the data frame
@@ -316,15 +316,15 @@ chisq$p.value
 # stroke is same as that of a female patient.
 
 ################# Question 3:
-# Increased Average glucose level leads to heart diseases which may
-# eventually lead to a stroke
+# Does increased average glucose level indicate the presence of heart diseases
 #################
-# Normal range of Glucose level <= 140
-# Diabetic range of Glucose level > 200
-# H0 = Increased average glucose level leads to heart diseases
-# H1 = Increased average glucose level has no effect on heart disease
+# Normal range of Glucose level <= 140 mmol/L
+# Diabetic range of Glucose level > 200 mmol/L
 
-# heart_disease variable is a categorical dichotomous variable with following labels:
+# H0 = Increased average glucose level shows presence of heart diseases
+# H1 = Increased average glucose level is not related to presence of heart diseases
+
+# heart_disease is a categorical dichotomous variable with following labels:
 # 0 = Patient doesn't have any heart disease; 1 = Patient has heart disease
 new_stroke_data$heart_disease <- factor(new_stroke_data$heart_disease, 
                                  labels = c("Patient does not have heart disease", 
@@ -346,7 +346,8 @@ plot(heart_disease, avg_glucose_level, pch = 9, col = "Red",
 histogram(~avg_glucose_level | heart_disease, 
           data = new_stroke_data, 
           main = "Distribution of Average Glucose Level v/s Heart Disease", 
-          xlab = "Average Glucose Level(mmol/L)", ylab = "Number of patients having Heart Diseases")
+          xlab = "Average Glucose Level(mmol/L)", 
+          ylab = "Number of patients having Heart Diseases")
 
 # Quantile-quantile plot (Q-Q-Plot) allows us to check
 # if the data is Normally Distributed or not
@@ -391,23 +392,21 @@ wilcox.test(avg_glucose_level~heart_disease)
 
 # p-value < 0.05 so this indicates that the
 # Null (H0) hypothesis is rejected
-# therefore this indicates that
-# the rise in average glucose level has no effect on heart disease
+# Thus, increased average glucose level has no effect on heart disease
 
 # Answer for Question 3:
-# Thus Increased average glucose level has no effect on heart disease
+# Increased average glucose level does not indicate presence of heart disease
 
 ################# Question 4:
-# Does Smoking status depends on Work type
+# Is work-type related to a patient having hypertension
 #################
-# H0 = Smoking status has positive correlation to Work type
-# H1 = Smoking status and Work Type are not correlated
+# H0 = Hypertension has positive correlation to Work type
+# H1 = Hypertension and Work Type are not correlated
 
 # work_type: "children" ~0,"Never_worked" ~1,"Private" ~2,
 # "Govt_job" ~3,"Self-employed" ~4
 
-# smoking_status: "never smoked" ~0,"formerly smoked" ~1,
-# "smokes" ~2,"Unknown" ~3
+# hypertension: "Doesn't have" ~0,"Have" ~1
 
 # Structure of the DF
 str(new_stroke_data)
@@ -416,17 +415,17 @@ str(new_stroke_data)
 table(new_stroke_data$work_type)
 
 # Analyzing smoking_status with work_type
-table(new_stroke_data$smoking_status, new_stroke_data$work_type)
+table(new_stroke_data$hypertension, new_stroke_data$work_type)
 
 # Plot the graph to analyze the specified attributes
-plot(smoking_status, work_type, pch = 15, col = "red", 
-     main = "Comaprison of work_type with smoking_status", 
-     xlab = "smoking_status", ylab = "work_type")
+plot(hypertension, work_type, pch = 15, col = "red", 
+     main = "Comaprison of work_type with hypertension", 
+     xlab = "Hypertension", ylab = "work_type")
 
 # Visualizing the variables
-histogram(~work_type | smoking_status, 
+histogram(~work_type | hypertension, 
           data = new_stroke_data, 
-          main = "Distribution of Work Type with Smoking status", 
+          main = "Distribution of Work Type with Hypertension", 
           xlab = "Work Type", ylab = "Count of patients")
 
 # Quantile-Quantile plot (Q-Q-Plot) allows us to check
@@ -439,7 +438,7 @@ qqline(work_type, col = "red")
 
 # Applying the chi-square statistic with the function
 # it can be applied as both are categorical variables
-chisq1 <- chisq.test(work_type, smoking_status)
+chisq1 <- chisq.test(work_type, hypertension)
 chisq1
 
 # Observed count values for the hypothesis
@@ -455,14 +454,14 @@ round(chisq1$residuals)
 chisq1$p.value
 
 # cut-off = 0.05
-# p-value = 1.86e-283 which is almost equal to 0
-# As, p-value < 0.05 then we, Reject the H0
+# p-value = 1.01e-25 which is almost equal to 0
+# As, p-value < 0.05 thus, we Reject the H0
 
 # Answer to Question 4:
-# Thus the he smoking status has no correlation to work type
+# Thus, Hypertension has no correlation to work-type
 
 ################# Question 5:
-# Is marriage responsible for hypertension
+# Are married people more likely to have hypertension
 #################
 # H0 = Marital status has positive correlation with hypertension
 # H1 = Marital status and hypertension are not correlated
@@ -522,6 +521,90 @@ chisq2$p.value
 
 # Answer to Question 5:
 # Thus the marital status has no correlation with hypertension
+
+########### Question 6:
+# Does age have an affect on BMI of a patient
+###########
+
+#H0: Age is positively correlated with BMI of a patient
+#H1: Age has no correlation to BMI of a patient
+
+# Plot the graph to analyze the specified attributes
+plot(age, bmi, pch = 19, col ="blue", 
+     main = "Comaprison of Age with BMI", 
+     xlab = "Age (in years)", ylab = "BMI(kg/m2)")
+
+
+# Visualizing the variables separately using hist function
+# for Age
+hist(age, col = "red", main = "Distributation of Age", 
+     xlab = "Age (in years)")
+# for BMI
+hist(bmi, col = "red", main = "Distribution of BMI", 
+     xlab = "BMI(kg/m2)")
+
+# Visual analysis of the data
+histogram(~age | bmi,
+          data = new_stroke_data,
+          main = "Distributation of Agee v/s BMI",
+          xlab = "Age (in years)" ,ylab = "BMI(kg/m2)")
+
+# Quantile-quantile plot (Q-Q-Plot) allows us to check
+# if the data is Normally Distributed or not
+# Adding the line that represent the ND of data using
+# function qqplot() & qqline()
+with(new_stroke_data,
+     {qqnorm(new_stroke_data$age, 
+             main ="Normal Q-Q-Plot of Age", 
+             xlab = "Theoretical Quantiles", 
+             ylab = "Sample Quantiles")
+             qqline(new_stroke_data$age)
+     })
+
+with(new_stroke_data,
+     {qqnorm(new_stroke_data$bmi, 
+             main ="Normal Q-Q-Plot of BMI", 
+             xlab = "Theoretical Quantiles", 
+             ylab = "Sample Quantiles")
+             qqline(new_stroke_data$bmi)
+     })
+
+# Examine the linear correlation between both vars
+with(new_stroke_data, qqplot(age, bmi))
+
+# Testing the linearity of the variables
+# We can run the formal test of normality provided through 
+# the widely used Shapiro-wilks test
+normality_test <- shapiro.test(new_stroke_data$age)
+normality_test$p.value
+# For this variable p-value = 0.000003
+
+normality_test <- shapiro.test(new_stroke_data$bmi)
+normality_test$p.value
+# For this variable p-value = 0.005
+
+# p-values tells us the chance that the sample comes from Normal Distribution
+# If p-value < 0.05 then the variable is not Normally Distributed
+# If p-value > 0.05 then the variable is Normally Distributed
+shapiro.test(new_stroke_data$age)
+# 0.000003 < 0.05
+# Thus Age is not Normally Distributed
+shapiro.test(new_stroke_data$bmi)
+# 0.005 < 0.05
+# # Thus BMI is not Normally Distributed
+
+# If both the variables are not Normally Distributed,
+# "Spearman" correlation method test is used
+# Dependent var = BMI
+# Independent var = Age
+cor.test(age, bmi, method = "spearman")
+# cut-off = 0.05
+# As, p-value < 0.05
+# Hence, we will Reject (H0)
+# Thus Age and BMI of a patient are not correlated
+
+# Answer to question 6:
+# Thus we can state that Age has no correlation to BMI of a patient
 
 # Saving the modified file of the data worked on
 write.csv(new_stroke_data, file = "new_stroke_data.csv")
