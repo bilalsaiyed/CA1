@@ -7,10 +7,10 @@
 library(naniar)
 library(dplyr)
 
-# Importing the dataset into a DF
+# Importing the dataset into a Data frame
 stroke_data <- read.csv("stroke.csv", na = "")
 
-# Structure of DF
+# Structure of Data frame
 str(stroke_data)
 
 # Displaying the number of rows and columns
@@ -68,23 +68,23 @@ all_numeric <- all_numeric %>%
         )
 str(all_numeric)
 
-# 1. id and Date attributes 
+# 1. Id and Date attributes 
 # As these attributes were used to identify the patients
 # records only, hence they can be dropped for further processing
 new_stroke_data <- all_numeric[, c(2,3,4,5,6,7,8,9,10,11,12)]
 str(new_stroke_data)
 
-# 2. bmi attribute:
+# 2. BMI attribute:
 # Removing the N/A from bmi attribute which account for 3.9% of all values
 new_stroke_data <- new_stroke_data[new_stroke_data$bmi != "N/A", ]
 str(new_stroke_data)
 # Removed 201 rows with N/A value from the data frame
 
-# Converting the bmi attribute from character to numeric
+# Converting the BMI attribute from character to numeric
 new_stroke_data["bmi"] <- as.numeric(new_stroke_data$bmi)
 str(new_stroke_data)
 
-# 3. gender attribute:
+# 3. Gender attribute:
 # As there is only 1 entry with "Other" value which is encoded as 2, hence
 # Removing patients who were categorized as ‘Other’ in the gender column
 new_stroke_data = filter(new_stroke_data, gender!= 2)
@@ -109,9 +109,6 @@ missing_values <- aggr(new_stroke_data, prop = FALSE, numbers = TRUE)
 # Display the summary of missing data
 summary(missing_values)
 
-# Display the structure of DF
-str(new_stroke_data)
-
 # Making use of psych library
 library(psych)
 
@@ -132,9 +129,9 @@ pairs.panels(new_stroke_data,
              ci = TRUE) # If TRUE, adds confidence intervals
 
 
-############# Question 1:
-# Are aged people more likely to get a stroke than younger people 
-############# 
+#####################################################################
+# Q1: Are aged people more likely to get a stroke than younger people 
+#####################################################################
 # H0 = Elder and younger people are equally likely to get a stroke
 # H1 = Elder people are more likely to get a stroke than younger people
 
@@ -233,7 +230,6 @@ pairwise.wilcox.test(new_stroke_data$age, new_stroke_data$stroke,
                      p.adjust.method = "BH")
 
 # The pairwise comparison shows that the levels are significantly different
-
 # cut-off = 0.05
 # p-value = 0.00000000000000022 which is almost equal to 0
 
@@ -243,9 +239,9 @@ pairwise.wilcox.test(new_stroke_data$age, new_stroke_data$stroke,
 # Answer for Question 1:
 # Elder people are more likely to get a stroke than younger people
 
-############## Question 2:
-# Are males more likely to get a stroke than females
-############## 
+########################################################
+# Q2: Are males more likely to get a stroke than females
+########################################################
 # H0 = Males and females are equally likely to get a stroke
 # H1 = Males have more chances to get a stroke than females
 
@@ -315,9 +311,9 @@ chisq$p.value
 # Thus the chance of a male patient getting a
 # stroke is same as that of a female patient.
 
-################# Question 3:
-# Does increased average glucose level indicate the presence of heart diseases
-#################
+##################################################################################
+# Q3: Does increased average glucose level indicate the presence of heart diseases
+##################################################################################
 # Normal range of Glucose level <= 140 mmol/L
 # Diabetic range of Glucose level > 200 mmol/L
 
@@ -394,9 +390,9 @@ kruskal.test(avg_glucose_level~heart_disease, data = new_stroke_data)
 # Answer for Question 3:
 # Increased average glucose level does not indicate presence of heart disease
 
-################# Question 4:
-# Is work-type related to a patient having hypertension
-#################
+###########################################################
+# Q4: Is work-type related to a patient having hypertension
+###########################################################
 # H0 = Hypertension has positive correlation to Work type
 # H1 = Hypertension and Work Type are not correlated
 
@@ -463,11 +459,14 @@ chisq1$p.value
 # Answer to Question 4:
 # Thus, Hypertension has no correlation to work-type
 
-################# Question 5:
-# Are married people more likely to have hypertension
-#################
+#########################################################
+# Q5: Are married people more likely to have hypertension
+#########################################################
 # H0 = Marital status has positive correlation with hypertension
 # H1 = Marital status and hypertension are not correlated
+
+# hypertension: "Doesn't have" ~0,"Have" ~1
+# ever_married: "Yes" ~1: Married,"No" ~0: Unmarried
 
 # Convert the ever_married variable to
 # a categorical dichotomous variable with appropriate labels
@@ -475,9 +474,6 @@ chisq1$p.value
 new_stroke_data$ever_married <- factor(new_stroke_data$ever_married, 
                                  labels = c("Unmarried", 
                                             "Married"))
-# ever_married: "Yes" ~1: Married,"No" ~0: Unmarried
-
-# hypertension: "Doesn't have" ~0,"Have" ~1
 
 # Structure of the DF
 str(new_stroke_data)
@@ -531,9 +527,9 @@ chisq2$p.value
 # Answer to Question 5:
 # Thus, the marital status has no correlation with hypertension
 
-########### Question 6:
-# Does age influence the BMI of a patient
-###########
+#############################################
+# Q6: Does age influence the BMI of a patient
+#############################################
 
 #H0: Age is positively correlated with BMI of a patient
 #H1: Age has no correlation to BMI of a patient
