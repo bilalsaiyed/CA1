@@ -223,9 +223,9 @@ with(new_stroke_data, tapply(age, stroke, shapiro.test))
 # Patients did not have a stroke before = p-value = 2.2e-16 - It is not ND
 # Patients had a stroke before = p-value = 1.9e-10 - It is not ND
 
-# After examining that the dependent var(Age) is not normally distributed,
-# we choose the Non-parametric Kruskal- Wallis test
-# with the independent categorical variable Stroke
+# As we haven't decided any dependent or independent variable, 
+# we can use Kruskal-Test if we have one data as continuous and 
+# other as categorical data 
 kruskal.test(age~stroke, data = new_stroke_data)
 
 # Calculating the pairwise comparisons between Age and Stroke
